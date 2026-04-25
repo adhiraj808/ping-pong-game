@@ -2,39 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Classical Pong - Vintage Edition</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Baskervville&display=swap" rel="stylesheet">
-    <style>
-        /* Loading state styles */
-        body {
-            margin: 0;
-            background: #2c1810;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #e2d1b3;
-            font-family: 'Playfair Display', serif;
-        }
-        .loader {
-            text-align: center;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏓 Ultimate Pong</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="root">
-        <div class="loader">
-            <h1>🏓 Classical Pong</h1>
-            <p>Polishing the wood...</p>
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="menu-overlay" class="overlay active">
+            <h1>ULTIMATE PONG</h1>
+            <div class="menu-buttons">
+                <button id="btn-single">Single Player (VS AI)</button>
+                <div class="divider"><span>OR</span></div>
+                <button id="btn-host">Host Multiplayer</button>
+                <div class="join-container">
+                    <input type="text" id="join-id" placeholder="Enter Room ID">
+                    <button id="btn-join">Join Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Info Overlay -->
+        <div id="room-overlay" class="overlay hidden">
+            <h2>WAITING FOR OPPONENT</h2>
+            <p>Room ID: <span id="display-room-id">....</span></p>
+            <div class="loader"></div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Pause / UI Layer -->
+        <div id="game-ui" class="hidden">
+            <button id="btn-pause">Pause</button>
         </div>
     </div>
-    <!-- We will use a CDN version of React for simplicity in this migration -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script type="text/babel" src="app.js"></script>
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

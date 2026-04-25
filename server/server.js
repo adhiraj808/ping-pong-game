@@ -1,78 +1,61 @@
-const { WebSocketServer } = require('ws');
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 const PORT = process.env.PORT || 3000;
-const wss = new WebSocketServer({ port: PORT });
-const rooms = new Map(); // Map<code, { host, client }>
 
-console.log(`WebSocket Server started on port ${PORT}`);
+// Serve static files from the client directory
+app.use(express.static(path.join(__dirname, '../client')));
 
-function generateCode() {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-}
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-wss.on('connection', (ws) => {
-    let currentRoom = null;
+    socket.on('createRoom', () => {
+        const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+        socket.join(roomId);
+        socket.emit('roomCreated', roomId);
+        console.log(`Room ${roomId} created by ${socket.id}`);
+    });
 
-    ws.on('message', (data) => {
-        try {
-            const msg = JSON.parse(data);
-
-            switch (msg.type) {
-                case 'host':
-                    const code = generateCode();
-                    rooms.set(code, { host: ws, client: null });
-                    currentRoom = code;
-                    ws.send(JSON.stringify({ type: 'hosted', code }));
-                    console.log(`Room ${code} created`);
-                    break;
-
-                case 'join':
-                    const joinCode = msg.code;
-                    const room = rooms.get(joinCode);
-                    if (room && !room.client) {
-                        room.client = ws;
-                        currentRoom = joinCode;
-                        room.host.send(JSON.stringify({ type: 'playerJoined' }));
-                        ws.send(JSON.stringify({ type: 'joined', code: joinCode }));
-                        console.log(`Player joined room ${joinCode}`);
-                    } else {
-                        ws.send(JSON.stringify({ type: 'error', message: 'Room not found or full' }));
-                    }
-                    break;
-
-                case 'state':
-                    if (currentRoom) {
-                        const r = rooms.get(currentRoom);
-                        if (r && r.client) r.client.send(data.toString());
-                    }
-                    break;
-
-                case 'input':
-                    if (currentRoom) {
-                        const r = rooms.get(currentRoom);
-                        if (r && r.host) r.host.send(data.toString());
-                    }
-                    break;
-            }
-        } catch (e) {
-            console.error('Error parsing message:', e);
+    socket.on('joinRoom', (roomId) => {
+        const room = io.sockets.adapter.rooms.get(roomId);
+        if (room && room.size < 2) {
+            socket.join(roomId);
+            socket.emit('roomJoined', roomId);
+            socket.to(roomId).emit('playerJoined');
+            console.log(`User ${socket.id} joined room ${roomId}`);
+        } else {
+            socket.emit('error', 'Room is full or does not exist');
         }
     });
 
-    ws.on('close', () => {
-        if (currentRoom) {
-            const room = rooms.get(currentRoom);
-            if (room) {
-                if (room.host === ws) {
-                    if (room.client) room.client.send(JSON.stringify({ type: 'disconnected' }));
-                    rooms.delete(currentRoom);
-                    console.log(`Room ${currentRoom} deleted (host left)`);
-                } else if (room.client === ws) {
-                    room.host.send(JSON.stringify({ type: 'disconnected' }));
-                    room.client = null;
-                    console.log(`Player left room ${currentRoom}`);
-                }
-            }
-        }
+    // Synchronize paddle movement
+    socket.on('paddleMove', (data) => {
+        // data: { roomId, y }
+        socket.to(data.roomId).emit('opponentMove', data.y);
     });
+
+    // Synchronize ball state (usually sent by the host)
+    socket.on('ballSync', (data) => {
+        // data: { roomId, x, y, dx, dy, score1, score2 }
+        socket.to(data.roomId).emit('ballUpdate', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
