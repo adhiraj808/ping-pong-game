@@ -9,7 +9,7 @@ const CONFIG = {
 	paddle: { width: 10, height: 100, speed: 8 },
 	ball: { size: 10, speed: 5 },
 	ai: { speeds: { easy: 0.6, medium: 0.8, hard: 0.95 }, react: { easy: 50, medium: 30, hard: 10 } },
-	serverUrl: `ws://${window.location.hostname}:3000`
+	serverUrl: window.location.origin.replace(/^http/, 'ws')
 };
 
 // -------------------------------
