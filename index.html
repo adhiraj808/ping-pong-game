@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f0c29">
+    <meta name="msapplication-navbutton-color" content="#0f0c29">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
+    <title>Pong Game - Enhanced Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="assets/manifest.json">
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Main Menu -->
+        <div id="menu" class="menu">
+            <div class="game-logo">
+                <h1>🏓PONG</h1>
+                <p class="subtitle">Classic Arcade Revival</p>
+            </div>
+
+            <div class="menu-buttons">
+                <div class="match-settings">
+                    <label for="matchPoint">🏆 Match Point:</label>
+                    <select id="matchPoint" class="setting-dropdown">
+                        <option value="5">First to 5</option>
+                        <option value="10" selected>First to 10</option>
+                        <option value="15">First to 15</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <input type="number" id="customMatchPoint" class="setting-input hidden" min="1" max="99" value="21">
+                </div>
+
+                <button id="vsPlayer" class="menu-btn primary" data-touch-action="manipulation">
+                    <span class="btn-icon">👥</span>
+                    <span class="btn-text">Local PvP</span>
+                </button>
+
+                <button id="hostGame" class="menu-btn primary" data-touch-action="manipulation">
+                    <span class="btn-icon">🌐</span>
+                    <span class="btn-text">Host Online</span>
+                </button>
+
+                <button id="joinGame" class="menu-btn primary" data-touch-action="manipulation">
+                    <span class="btn-icon">🔗</span>
+                    <span class="btn-text">Join Online</span>
+                </button>
+
+                <div id="aiOptions" class="ai-options">
+                    <button id="vsAI" class="menu-btn secondary" data-touch-action="manipulation">
+                        <span class="btn-icon">🤖</span>
+                        <span class="btn-text">Play vs AI</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="menu-footer">
+                <p class="version">v3.0 Online</p>
+                <p class="features">🌐 Online Play • 🎮 Touch • 🌈 Modern UI</p>
+            </div>
+        </div>
+
+        <!-- Online Multiplayer Modal -->
+        <div id="onlineModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="onlineModalTitle">🌐 Online Game</h2>
+                    <p id="onlineModalStatus" class="modal-subtitle">Connecting...</p>
+                </div>
+
+                <div id="joinSection" class="hidden">
+                    <input type="text" id="roomCodeInput" placeholder="Enter 4-digit code" maxlength="4"
+                        autocomplete="off" spellcheck="false">
+                    <button id="confirmJoinBtn" class="menu-btn primary">Join Room</button>
+                </div>
+
+                <div id="hostSection" class="hidden">
+                    <div class="score-value" style="margin: 20px auto; font-family: monospace;" id="displayRoomCode">
+                        ----</div>
+                    <p class="modal-subtitle">Share this code with your opponent</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="cancelOnline" class="cancel-btn">Back to Menu</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="gameUI" class="game-ui hidden">
+            <!-- Game Header -->
+            <div class="game-header">
+                <div class="game-info">
+                    <h2 class="game-title">🏓 PONG BATTLE</h2>
+                    <p class="game-mode" id="gameModeDisplay">Player vs Player</p>
+                </div>
+
+                <div class="game-controls">
+                    <button id="pauseBtn" class="control-btn" data-touch-action="manipulation">
+                        <span class="btn-icon">⏸️</span>
+                    </button>
+                    <button id="restartBtn" class="control-btn" data-touch-action="manipulation">
+                        <span class="btn-icon">🔄</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Score Display -->
+            <div class="score">
+                <div class="player-score">
+                    <div class="player-label">Player 1</div>
+                    <span id="player1Score" class="score-value">0</span>
+                </div>
+
+                <div class="vs-indicator">
+                    <span class="vs-text">VS</span>
+                </div>
+
+                <div class="player-score">
+                    <div class="player-label">Player 2</div>
+                    <span id="player2Score" class="score-value">0</span>
+                </div>
+            </div>
+
+            <!-- Game Canvas -->
+            <div class="canvas-container">
+                <canvas id="gameCanvas" data-touch-action="none">Your browser doesn't support HTML5 Canvas</canvas>
+            </div>
+
+            <!-- Mobile Touch Controls -->
+            <div class="mobile-controls">
+                <div class="touch-zones">
+                    <div class="touch-zone left-zone" id="leftTouchZone">
+                        <div class="zone-label">Player 1</div>
+                        <div class="zone-instructions">
+                            <div class="touch-arrow up">⬆️</div>
+                            <div class="touch-arrow down">⬇️</div>
+                        </div>
+                    </div>
+                    <div class="touch-zone right-zone" id="rightTouchZone">
+                        <div class="zone-label">Player 2</div>
+                        <div class="zone-instructions">
+                            <div class="touch-arrow up">⬆️</div>
+                            <div class="touch-arrow down">⬇️</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Controls Info -->
+            <div class="controls">
+                <div class="control-section">
+                    <h3>🎮 Controls</h3>
+                    <div class="control-grid">
+                        <div class="control-item">
+                            <span class="control-key">W / S</span>
+                            <span class="control-desc">Player 1 (Left)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">↑ / ↓</span>
+                            <span class="control-desc">Player 2 (Right)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">ESC</span>
+                            <span class="control-desc">Pause Game</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="touch-info">
+                    <p>📱 Touch the left/right side of the screen to control paddles</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Difficulty Selection Modal -->
+        <div id="difficultyModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🎯 Select Difficulty</h2>
+                    <p class="modal-subtitle">Choose your AI opponent's skill level</p>
+                </div>
+
+                <div class="difficulty-buttons">
+                    <button data-difficulty="easy" class="difficulty-btn easy" data-touch-action="manipulation">
+                        <span class="difficulty-icon">😊</span>
+                        <span class="difficulty-name">Easy</span>
+                        <span class="difficulty-desc">Beginner friendly</span>
+                    </button>
+
+                    <button data-difficulty="medium" class="difficulty-btn medium" data-touch-action="manipulation">
+                        <span class="difficulty-icon">😐</span>
+                        <span class="difficulty-name">Medium</span>
+                        <span class="difficulty-desc">Balanced challenge</span>
+                    </button>
+
+                    <button data-difficulty="hard" class="difficulty-btn hard" data-touch-action="manipulation">
+                        <span class="difficulty-icon">😈</span>
+                        <span class="difficulty-name">Hard</span>
+                        <span class="difficulty-desc">Expert level</span>
+                    </button>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="cancelDifficulty" class="cancel-btn" data-touch-action="manipulation">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameOverModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="winnerTitle">🎉 Player 1 Wins!</h2>
+                    <p id="finalScore" class="modal-subtitle">Score: 10 - 5</p>
+                </div>
+                <div class="menu-buttons">
+                    <button id="playAgainBtn" class="menu-btn primary">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Play Again</span>
+                    </button>
+                    <button id="backToMenuBtn" class="menu-btn secondary">
+                        <span class="btn-icon">🏠</span>
+                        <span class="btn-text">Back to Menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+</body>
+
+</html>
