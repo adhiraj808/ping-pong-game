@@ -16,45 +16,16 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    let pathname;
-
-    try {
-        pathname = decodeURIComponent(new URL(req.url, `http://${req.headers.host || 'localhost'}`).pathname);
-    } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('Bad request');
-        return;
-    }
-
-    if (pathname === '/healthz') {
-        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    if (req.url === '/healthz') {
+        res.writeHead(200);
         res.end('ok');
         return;
     }
 
-    const relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-    const filePath = path.resolve(CLIENT_DIR, relativePath);
-
-    if (!filePath.startsWith(`${CLIENT_DIR}${path.sep}`)) {
-        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('Forbidden');
-        return;
-    }
-
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            const status = err.code === 'ENOENT' ? 404 : 500;
-            const message = status === 404 ? 'Not found' : 'Server error';
-            res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
-            res.end(message);
-            return;
-        }
-
-        const contentType = MIME_TYPES[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content);
-    });
+    res.writeHead(200);
+    res.end('WebSocket server running');
 });
+
 
 const wss = new WebSocketServer({ server });
 const rooms = new Map(); // Map<code, { host, client }>
