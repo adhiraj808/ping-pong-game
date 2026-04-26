@@ -310,7 +310,7 @@ function canControlSide(side) {
 function initWebSocket() {
     return new Promise((resolve, reject) => {
         if (state.online.ws) state.online.ws.close();
-        state.online.ws = new WebSocket(CONFIG.serverUrl);
+        state.online.ws = new WebSocket(window.APP_CONFIG.WS_URL);
         state.online.ws.onopen = () => {
             state.online.connected = true;
             resolve();
