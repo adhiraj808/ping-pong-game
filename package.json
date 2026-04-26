@@ -5,12 +5,17 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:vercel": "node scripts/write-client-config.js",
+    "check": "node --check server/server.js && node --check client/script.js",
+    "test": "npm run check"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "ws": "^8.20.0"
   }
